@@ -1,7 +1,7 @@
 use base64::DecodeError;
 use data_url::DataUrlError;
 use log::SetLoggerError;
-use miniz_oxide::inflate::TINFLStatus;
+use miniz_oxide::inflate::DecompressError;
 use serde_json::Error;
 use std::fmt;
 use std::fmt::Formatter;
@@ -30,13 +30,14 @@ pub enum PasteError {
     Base64Error(DecodeError),
     Base58Error(bs58::decode::Error),
     Aes(aes_gcm::Error),
-    Zlib(miniz_oxide::inflate::TINFLStatus),
+    Zlib(miniz_oxide::inflate::DecompressError),
     InvalidAttachment(data_url::DataUrlError),
     FileExists,
     NotAFile,
     InvalidTokenType(String),
     OidcBadRequest(serde_json::Value),
     LoggerInit(log::SetLoggerError),
+    PasswordPrompt(dialoguer::Error),
 }
 
 impl std::error::Error for PasteError {}
@@ -75,7 +76,8 @@ impl fmt::Display for PasteError {
             PasteError::OidcBadRequest(json) => write!(f, "{}", json),
             PasteError::LoggerInit(err) => {
                 write!(f, "Failed to init logger: {}", err)
-            }
+            },
+            PasteError::PasswordPrompt(err) => write!(f, "Failed to prompt for password: {}", err),
         }
     }
 }
@@ -116,8 +118,8 @@ impl From<aes_gcm::Error> for PasteError {
     }
 }
 
-impl From<miniz_oxide::inflate::TINFLStatus> for PasteError {
-    fn from(err: TINFLStatus) -> Self {
+impl From<miniz_oxide::inflate::DecompressError> for PasteError {
+    fn from(err: DecompressError) -> Self {
         PasteError::Zlib(err)
     }
 }
@@ -137,5 +139,11 @@ impl From<DataUrlError> for PasteError {
 impl From<SetLoggerError> for PasteError {
     fn from(err: SetLoggerError) -> Self {
         PasteError::LoggerInit(err)
+    }
+}
+
+impl From<dialoguer::Error> for PasteError {
+    fn from(err: dialoguer::Error) -> Self {
+        PasteError::PasswordPrompt(err)
     }
 }

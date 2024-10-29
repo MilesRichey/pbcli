@@ -1,7 +1,7 @@
 use crate::error::{PasteError, PbResult};
 use crate::privatebin::Cipher;
-use aes_gcm::aead::{Aead, NewAead};
-use aes_gcm::{Key, Nonce};
+use aes_gcm::aead::Aead;
+use aes_gcm::{Key, Nonce, KeyInit};
 
 /// Trait implemented by any decrypt-able type (paste or comment)
 pub trait Decryptable {
@@ -73,7 +73,7 @@ pub fn encrypt(
     );
 
     type Cipher = aes_gcm::AesGcm<aes_gcm::aes::Aes256, typenum::U16>;
-    let cipher = Cipher::new(Key::from_slice(&derived_key));
+    let cipher: aes_gcm::AesGcm<aes_gcm::aes::Aes256, typenum::U16> = Cipher::new(Key::<aes_gcm::aes::Aes256>::from_slice(&derived_key));
     let payload = aes_gcm::aead::Payload {
         msg: &paste_blob,
         aad: aad.as_bytes(),
@@ -88,7 +88,7 @@ fn decrypt_aes_256_gcm(decryptable: &impl Decryptable, derived_key: &[u8]) -> Pb
     let ciphertext = base64::decode(decryptable.get_ct())?;
     let nonce = decryptable.get_cipher().vec_cipher_iv()?;
 
-    let cipher = Cipher::new(Key::from_slice(derived_key));
+    let cipher: aes_gcm::AesGcm<aes_gcm::aes::Aes256, typenum::U16> = Cipher::new(Key::<aes_gcm::aes::Aes256>::from_slice(derived_key));
     let adata_str = decryptable.get_adata_str();
     let payload = aes_gcm::aead::Payload {
         msg: &ciphertext,
