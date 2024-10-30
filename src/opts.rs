@@ -11,7 +11,7 @@ Project home page: https://github.com/Mydayyy/pbcli";
 #[derive(Debug, Parser, Clone)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
 #[clap(
-    version = env ! ("CARGO_PKG_VERSION"), author = "Mydayyy <dev@mydayyy.eu>", about = ABOUT
+    version = env ! ("CARGO_PKG_VERSION"), author = "Mydayyy <dev@mydayyy.eu>", about = ABOUT, args_override_self = true
 )]
 #[clap(term_width(if let Some((terminal_size::Width(w), _)) = terminal_size::terminal_size() { w as usize } else { 120 }
 ))]

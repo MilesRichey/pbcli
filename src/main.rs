@@ -102,14 +102,16 @@ fn handle_get(opts: &Opts) -> PbResult<()> {
 }
 
 fn handle_post(opts: &Opts) -> PbResult<()> {
+    let stdin = get_stdin()?;
+    if stdin.is_empty() {
+        return Err(PasteError::EmptyPaste);
+    }
     let url = opts.get_url();
     
     let api = API::new(url.clone(), opts.clone());
 
     let password = &opts.password.clone().unwrap_or_default();
 
-    let stdin = get_stdin()?;
-    
     let mut paste = DecryptedPaste {
         paste: stdin,
         attachment: None,
