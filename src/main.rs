@@ -1,3 +1,5 @@
+use base64::engine::general_purpose;
+use base64::Engine;
 use clap::Parser;
 use data_url::DataUrl;
 use pbcli::api::API;
@@ -100,8 +102,12 @@ fn handle_get(opts: &Opts) -> PbResult<()> {
 }
 
 fn handle_post(opts: &Opts) -> PbResult<()> {
-    let url = opts.get_url();
     let stdin = get_stdin()?;
+    if stdin.is_empty() {
+        return Err(PasteError::EmptyPaste);
+    }
+    let url = opts.get_url();
+    
     let api = API::new(url.clone(), opts.clone());
 
     let password = &opts.password.clone().unwrap_or_default();
@@ -111,6 +117,7 @@ fn handle_post(opts: &Opts) -> PbResult<()> {
         attachment: None,
         attachment_name: None,
     };
+
 
     if let Some(path) = &opts.upload {
         if !path.is_file() {
@@ -123,7 +130,7 @@ fn handle_post(opts: &Opts) -> PbResult<()> {
 
         let mut data = Vec::new();
         handle.read_to_end(&mut data)?;
-        let b64_data = base64::encode(data);
+        let b64_data = general_purpose::STANDARD.encode(data);
 
         paste.attachment = Some(create_dataurl(path.as_os_str(), b64_data));
         paste.attachment_name = Some(

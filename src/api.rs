@@ -4,9 +4,11 @@ use crate::opts::Opts;
 use crate::privatebin::{Comment, DecryptedComment, Paste, PostCommentResponse, PostPasteResponse};
 use crate::util::check_filesize;
 use crate::DecryptedPaste;
+use base64::Engine;
 use rand_chacha::rand_core::{RngCore, SeedableRng};
 use reqwest::{Method, Url};
 use std::str::FromStr;
+use base64::engine::general_purpose::STANDARD as base64;
 
 #[cfg_attr(feature = "uniffi", derive(uniffi::Object))]
 pub struct API {
@@ -138,8 +140,7 @@ impl API {
             cipher.kdf_iterations,
             &paste.get_adata_str(),
         )?;
-
-        let b64_encrpyed_content = base64::encode(encrypted_content);
+        let b64_encrpyed_content = base64.encode(encrypted_content);
         check_filesize(b64_encrpyed_content.len() as u64, opts.size_limit);
         paste.ct = b64_encrpyed_content;
 
@@ -188,7 +189,7 @@ impl API {
             &comment.get_adata_str(),
         )?;
 
-        let b64_encrpyed_content = base64::encode(encrypted_content);
+        let b64_encrpyed_content = base64.encode(encrypted_content);
         check_filesize(b64_encrpyed_content.len() as u64, opts.size_limit);
         comment.ct = b64_encrpyed_content;
 

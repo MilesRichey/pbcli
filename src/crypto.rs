@@ -2,6 +2,8 @@ use crate::error::{PasteError, PbResult};
 use crate::privatebin::Cipher;
 use aes_gcm::aead::Aead;
 use aes_gcm::{Key, Nonce, KeyInit};
+use base64::engine::general_purpose::STANDARD as base64;
+use base64::Engine;
 
 /// Trait implemented by any decrypt-able type (paste or comment)
 pub trait Decryptable {
@@ -85,7 +87,7 @@ pub fn encrypt(
 
 fn decrypt_aes_256_gcm(decryptable: &impl Decryptable, derived_key: &[u8]) -> PbResult<Vec<u8>> {
     type Cipher = aes_gcm::AesGcm<aes_gcm::aes::Aes256, typenum::U16>;
-    let ciphertext = base64::decode(decryptable.get_ct())?;
+    let ciphertext = base64.decode(decryptable.get_ct())?;
     let nonce = decryptable.get_cipher().vec_cipher_iv()?;
 
     let cipher: aes_gcm::AesGcm<aes_gcm::aes::Aes256, typenum::U16> = Cipher::new(Key::<aes_gcm::aes::Aes256>::from_slice(derived_key));

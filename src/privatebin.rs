@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use crate::crypto::Decryptable;
 use crate::error::PbResult;
+use base64::Engine;
 use rand_core::{RngCore, SeedableRng};
 use serde::ser::{SerializeTuple, Serializer};
 use serde::Deserialize;
@@ -9,6 +10,7 @@ use serde::Serialize;
 use serde_json::json;
 use serde_with::skip_serializing_none;
 use url::Url;
+use base64::engine::general_purpose::STANDARD as base64;
 
 #[derive(Default, Deserialize, Debug, Serialize)]
 pub enum CompressionType {
@@ -20,7 +22,7 @@ pub enum CompressionType {
     Zlib,
 }
 
-#[derive(Default, clap::ArgEnum, Deserialize, Debug, Serialize, Clone, Copy)]
+#[derive(Default, clap::ValueEnum, Deserialize, Debug, Serialize, Clone, Copy)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Enum))]
 pub enum PasteFormat {
     #[default]
@@ -122,8 +124,8 @@ impl Default for Cipher {
         rng.fill_bytes(&mut nonce);
 
         Cipher {
-            cipher_iv: base64::encode(nonce),
-            kdf_salt: base64::encode(kdf_salt),
+            cipher_iv: base64.encode(nonce),
+            kdf_salt: base64.encode(kdf_salt),
             kdf_iterations: 100000,
             kdf_keysize: 256,
             cipher_tag_size: 128,
@@ -137,11 +139,11 @@ impl Default for Cipher {
 impl Cipher {
     /// get vector of bytes representation
     pub fn vec_cipher_iv(&self) -> PbResult<Vec<u8>> {
-        base64::decode(&self.cipher_iv).map_err(|e| e.into())
+        base64.decode(&self.cipher_iv).map_err(|e| e.into())
     }
     /// get vector of bytes representation
     pub fn vec_kdf_salt(&self) -> PbResult<Vec<u8>> {
-        base64::decode(&self.kdf_salt).map_err(|e| e.into())
+        base64.decode(&self.kdf_salt).map_err(|e| e.into())
     }
 }
 
